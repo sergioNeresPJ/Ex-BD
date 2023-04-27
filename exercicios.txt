@@ -1,0 +1,30 @@
+3)
+T1 <- Aulas junçao Professor
+T2 <- Select (T1)Disciplina = "BD"
+Projecao(T1-T2)
+
+4)
+T1 <- select(Aulas)Nome=adao
+t2 <- projecao(t1)Disciplina
+projecao( Matricula / t2 )nome_aluno
+
+
+8)
+T1 <- (ProfTurma juncao Professor)codprof = codprof
+T2 <- (T1 juncao Horario)codpto & numdisc & anosemestre & siglaturma
+T3 <- (T2 juncao PREDIO) predio = codpredio
+T4 <- select(T3)anosemestre = "2002/1" && nomeprof = "antonio santos" && sala = 101 && nomepredio = "25*
+projecao(t4)dia_semana, hora, numHor
+
+9)
+
+t1(coddpto_turma) <- professor juncao prof_turma
+
+
+t2 <- select(t1)coddpto != coddpto_turma
+
+
+t3(nomedpto_turma) <- (t2 juncao                        dep)
+					[coddpto = coddpto_turma]
+
+projecao(dep juncao t3 )codprof, nomeprof, nomedpto, nomedpto_turma

@@ -1,0 +1,240 @@
+create table Departamento(
+	coddpto int primary key,
+	nomedpto varchar(500)
+);
+
+CREATE TABLE Disciplina (
+  	coddisc INT,
+  	coddpto INT,
+  	nomedisc VARCHAR(500),
+  	creditosdisc INT,
+  	CONSTRAINT fk_coddpto FOREIGN KEY (coddpto) REFERENCES Departamento(coddpto),
+	
+	constraint pk_disciplina primary key (coddisc, coddpto)
+);
+
+create table PreReq(
+	coddptoprereq int,
+	coddiscprereq int,
+	coddpto int,
+	coddisc int,
+	
+	CONSTRAINT fk_coddptoprereq foreign key (coddptoprereq, coddiscprereq) references Disciplina(coddpto, coddisc),
+	CONSTRAINT fk_coddpto foreign key (coddpto, coddisc) references  Disciplina(coddpto, coddisc),
+	
+	constraint pk_prereq primary key (coddptoprereq, coddiscprereq, coddpto, coddisc)
+);
+
+create table titulacao(
+	codtit int primary key,
+	nometit varchar(50)
+);
+
+create table professor(
+	codprof int primary key,
+	nomeprof varchar(50),
+	codtit int,
+	coddpto int,
+	
+	constraint fk_coddptoprof foreign key (coddpto) REFERENCES Departamento(coddpto),
+	constraint fk_codtit foreign key (codtit) references titulacao(codtit)
+);
+
+create table predio(
+	codpredio int primary key,
+	nomepredio varchar(50)
+);
+
+create table sala(
+	codpredio int,
+	numsala int,
+	capacsala int,
+	
+	constraint fk_codprediosala foreign key (codpredio) references predio(codpredio),
+
+	constraint pk_sala primary key(codpredio, numsala)
+);
+
+
+create table turma(
+	coddpto int,
+	numdisc int,
+	anosemestre varchar(10) not null,
+	siglaturma varchar(5) not null,
+	capacidade int,
+	
+	CONSTRAINT fk_coddptoturma foreign key (coddpto, numdisc) references Disciplina(coddpto, coddisc),
+	
+	constraint pk_turma primary key (anosemestre, siglaturma, coddpto, numdisc)
+);
+
+create table horario(
+	coddpto int,
+	numdisc int,
+	anosemestre varchar(10),
+	siglaturma varchar(5),
+	diasem varchar(10) not null,
+	horaini varchar(10) not null,
+	predio int,
+	sala int,
+	numhoras int,
+	
+	
+	constraint fk_numdptohorario foreign key (coddpto, numdisc, anosemestre, siglaturma) references turma(coddpto,numdisc, anosemestre, siglaturma),
+	constraint fk_salahorario foreign key (predio, sala) references sala(codpredio, numsala),
+	
+	constraint pk_horario primary key (diasem, horaini, coddpto, numdisc, anosemestre, siglaturma)
+);
+
+create table prof_turma(
+	coddpto int,
+	numdisc int,
+	anosemestre varchar(10),
+	siglaturma varchar(5),
+	codprof int,
+	
+	constraint fk_numdptoprofturma foreign key (coddpto, numdisc, anosemestre, siglaturma) references turma(coddpto, numdisc, anosemestre, siglaturma),
+	constraint fk_codprofprofturma foreign key (codprof) references professor(codprof),
+	
+	constraint pk_profturma primary key (coddpto, numdisc, anosemestre, siglaturma, codprof)
+);
+
+INSERT INTO departamento(coddpto, nomedpto) values (1, 'DComp');
+INSERT INTO departamento(coddpto, nomedpto) values (2, 'DMatematica');
+INSERT INTO departamento(coddpto, nomedpto) values (3, 'DGeografia');
+INSERT INTO departamento(coddpto, nomedpto) values (4, 'DEcologia');
+
+INSERT INTO disciplina (coddisc, coddpto, nomedisc, creditosdisc) values (1,1,'Banco De Dados',60);
+INSERT INTO disciplina (coddisc, coddpto, nomedisc, creditosdisc) values (2,1,'Estrutura de Dados',60);
+INSERT INTO disciplina (coddisc, coddpto, nomedisc, creditosdisc) values (3,1,'Estrutura de Dados Avançada',60);
+INSERT INTO disciplina (coddisc, coddpto, nomedisc, creditosdisc) values (4,1,'Organizacao e Recuperaçao da Informaçao',60);
+INSERT INTO disciplina (coddisc, coddpto, nomedisc, creditosdisc) values (1,2,'Calculo I',60);
+INSERT INTO disciplina (coddisc, coddpto, nomedisc, creditosdisc) values (2,2,'Calculo II',60);
+INSERT INTO disciplina (coddisc, coddpto, nomedisc, creditosdisc) values (3,2,'Calculo III',60);
+INSERT INTO disciplina (coddisc, coddpto, nomedisc, creditosdisc) values (4,2,'Calculo IV',60);
+INSERT INTO disciplina (coddisc, coddpto, nomedisc, creditosdisc) values (5,2,'Probabilidade e Estatistica',60);
+
+INSERT INTO predio (codpredio, nomepredio) values (1, 'predio roxo');
+INSERT INTO predio (codpredio, nomepredio) values (2, 'predio vermelho');
+INSERT INTO predio (codpredio, nomepredio) values (3, 'predio verde');
+
+INSERT INTO prereq (coddiscprereq, coddptoprereq, coddisc, coddpto) values (1,1,2,1);
+INSERT INTO prereq (coddiscprereq, coddptoprereq, coddisc, coddpto) values (2,1,3,1);
+INSERT INTO prereq (coddiscprereq, coddptoprereq, coddisc, coddpto) values (2,1,4,1);
+INSERT INTO prereq (coddiscprereq, coddptoprereq, coddisc, coddpto) values (1,2,2,2);
+INSERT INTO prereq (coddiscprereq, coddptoprereq, coddisc, coddpto) values (2,2,3,2);
+INSERT INTO prereq (coddiscprereq, coddptoprereq, coddisc, coddpto) values (2,2,5,2);
+INSERT INTO prereq (coddiscprereq, coddptoprereq, coddisc, coddpto) values (3,2,4,2);
+
+INSERT INTO titulacao (codtit, nometit) values (1, 'Doutor');
+INSERT INTO titulacao (codtit, nometit) values (2, 'Mestre');
+
+INSERT INTO professor (codprof, nomeprof, codtit, coddpto) values (1, 'Joao da Silva', 2, 2);
+INSERT INTO professor (codprof, nomeprof, codtit, coddpto) values (2, 'Candida', 1, 1);
+INSERT INTO professor (codprof, nomeprof, codtit, coddpto) values (3, 'Sahudy', 1, 1);
+INSERT INTO professor (codprof, nomeprof, codtit, coddpto) values (4, 'Gustavo Maciel', 1, 1);
+INSERT INTO professor (codprof, nomeprof, codtit, coddpto) values (5, 'Antonio Carlos', 2, 2);
+INSERT INTO professor (codprof, nomeprof, codtit, coddpto) values (6, 'Luciana Takata', 1, 2);
+
+INSERT INTO sala (codpredio, numsala, capacsala) values (1, 109, 40);
+INSERT INTO sala (codpredio, numsala, capacsala) values (1, 108, 60);
+INSERT INTO sala (codpredio, numsala, capacsala) values (1, 107, 60);
+INSERT INTO sala (codpredio, numsala, capacsala) values (1, 106, 30);
+INSERT INTO sala (codpredio, numsala, capacsala) values (1, 105, 30);
+INSERT INTO sala (codpredio, numsala, capacsala) values (1, 104, 30);
+INSERT INTO sala (codpredio, numsala, capacsala) values (2, 1, 50);
+INSERT INTO sala (codpredio, numsala, capacsala) values (2, 2, 50);
+INSERT INTO sala (codpredio, numsala, capacsala) values (2, 3, 50);
+INSERT INTO sala (codpredio, numsala, capacsala) values (2, 4, 50);
+INSERT INTO sala (codpredio, numsala, capacsala) values (3, 1, 50);
+INSERT INTO sala (codpredio, numsala, capacsala) values (3, 2, 50);
+INSERT INTO sala (codpredio, numsala, capacsala) values (3, 3, 50);
+INSERT INTO sala (codpredio, numsala, capacsala) values (3, 4, 50);
+
+--BD
+INSERT INTO turma (coddpto, numdisc, anosemestre, siglaturma, capacidade) values (1, 1, '2021/2', '020', 60);
+INSERT INTO turma (coddpto, numdisc, anosemestre, siglaturma, capacidade) values (1, 1, '2022/2', '021', 60);
+INSERT INTO turma (coddpto, numdisc, anosemestre, siglaturma, capacidade) values (1, 1, '2023/2', '022', 60);
+--EDA
+INSERT INTO turma (coddpto, numdisc, anosemestre, siglaturma, capacidade) values (1, 3, '2021/1', '020', 60);
+INSERT INTO turma (coddpto, numdisc, anosemestre, siglaturma, capacidade) values (1, 3, '2022/1', '021', 60);
+INSERT INTO turma (coddpto, numdisc, anosemestre, siglaturma, capacidade) values (1, 3, '2023/1', '022', 60);
+--ED
+INSERT INTO turma (coddpto, numdisc, anosemestre, siglaturma, capacidade) values (1, 2, '2020/2', '020', 60);
+INSERT INTO turma (coddpto, numdisc, anosemestre, siglaturma, capacidade) values (1, 2, '2021/2', '021', 60);
+INSERT INTO turma (coddpto, numdisc, anosemestre, siglaturma, capacidade) values (1, 2, '2022/2', '022', 60);
+--calculo I
+INSERT INTO turma (coddpto, numdisc, anosemestre, siglaturma, capacidade) values (1, 1, '2020/2', '020', 60);
+INSERT INTO turma (coddpto, numdisc, anosemestre, siglaturma, capacidade) values (1, 1, '2021/2', '021', 60);
+INSERT INTO turma (coddpto, numdisc, anosemestre, siglaturma, capacidade) values (1, 1, '2022/2', '022', 60);
+--calculo II
+INSERT INTO turma (coddpto, numdisc, anosemestre, siglaturma, capacidade) values (1, 2, '2021/1', '020', 60);
+INSERT INTO turma (coddpto, numdisc, anosemestre, siglaturma, capacidade) values (1, 2, '2022/1', '021', 60);
+INSERT INTO turma (coddpto, numdisc, anosemestre, siglaturma, capacidade) values (1, 2, '2023/1', '022', 60);
+--calculo III
+INSERT INTO turma (coddpto, numdisc, anosemestre, siglaturma, capacidade) values (2, 3, '2021/2', '020', 60);
+--calculo IV
+INSERT INTO turma (coddpto, numdisc, anosemestre, siglaturma, capacidade) values (2, 4, '2022/1', '020', 60);
+--Prob
+INSERT INTO turma (coddpto, numdisc, anosemestre, siglaturma, capacidade) values (2, 5, '2021/2', '020', 60);
+INSERT INTO turma (coddpto, numdisc, anosemestre, siglaturma, capacidade) values (2, 5, '2022/2', '021', 60);
+INSERT INTO turma (coddpto, numdisc, anosemestre, siglaturma, capacidade) values (2, 5, '2023/2', '022', 60);
+
+--BD
+INSERT INTO prof_turma (coddpto, numdisc, anosemestre, siglaturma, codprof) values (1, 1, '2021/2', '020', 3);
+INSERT INTO prof_turma (coddpto, numdisc, anosemestre, siglaturma, codprof) values (1, 1, '2022/2', '021', 3);
+INSERT INTO prof_turma (coddpto, numdisc, anosemestre, siglaturma, codprof) values (1, 1, '2023/2', '022', 3);
+--EDA
+INSERT INTO prof_turma (coddpto, numdisc, anosemestre, siglaturma, codprof) values (1, 3, '2021/1', '020', 1);
+INSERT INTO prof_turma (coddpto, numdisc, anosemestre, siglaturma, codprof) values (1, 3, '2022/1', '021', 1);
+INSERT INTO prof_turma (coddpto, numdisc, anosemestre, siglaturma, codprof) values (1, 3, '2023/1', '022', 1);
+--ED
+INSERT INTO prof_turma (coddpto, numdisc, anosemestre, siglaturma, codprof) values (1, 2, '2020/2', '020', 4);
+INSERT INTO prof_turma (coddpto, numdisc, anosemestre, siglaturma, codprof) values (1, 2, '2021/2', '021', 4);
+INSERT INTO prof_turma (coddpto, numdisc, anosemestre, siglaturma, codprof) values (1, 2, '2022/2', '022', 4);
+--calculo I
+INSERT INTO prof_turma (coddpto, numdisc, anosemestre, siglaturma, codprof) values (1, 1, '2020/2', '020', 6);
+INSERT INTO prof_turma (coddpto, numdisc, anosemestre, siglaturma, codprof) values (1, 1, '2021/2', '021', 6);
+INSERT INTO prof_turma (coddpto, numdisc, anosemestre, siglaturma, codprof) values (1, 1, '2022/2', '022', 6);
+--calculo II
+INSERT INTO prof_turma (coddpto, numdisc, anosemestre, siglaturma, codprof) values (1, 2, '2021/1', '020', 6);
+INSERT INTO prof_turma (coddpto, numdisc, anosemestre, siglaturma, codprof) values (1, 2, '2022/1', '021', 6);
+INSERT INTO prof_turma (coddpto, numdisc, anosemestre, siglaturma, codprof) values (1, 2, '2023/1', '022', 6);
+--calculo III
+INSERT INTO prof_turma (coddpto, numdisc, anosemestre, siglaturma, codprof) values (2, 3, '2021/2', '020', 5);
+--calculo IV
+INSERT INTO prof_turma (coddpto, numdisc, anosemestre, siglaturma, codprof) values (2, 4, '2022/1', '020', 5);
+--Prob
+INSERT INTO prof_turma (coddpto, numdisc, anosemestre, siglaturma, codprof) values (2, 5, '2021/2', '020', 5);
+INSERT INTO prof_turma (coddpto, numdisc, anosemestre, siglaturma, codprof) values (2, 5, '2022/2', '021', 5);
+INSERT INTO prof_turma (coddpto, numdisc, anosemestre, siglaturma, codprof) values (2, 5, '2023/2', '022', 5);
+
+
+--BD
+INSERT INTO horario (coddpto, numdisc, anosemestre, siglaturma, diasem, horaini, predio, sala, numhoras) values (1, 1, '2021/2', '020', 'terca', '08:00', 1, 108, 4);
+INSERT INTO horario (coddpto, numdisc, anosemestre, siglaturma, diasem, horaini, predio, sala, numhoras) values (1, 1, '2022/2', '021', 'terca', '08:00', 1, 108, 4);
+INSERT INTO horario (coddpto, numdisc, anosemestre, siglaturma, diasem, horaini, predio, sala, numhoras) values (1, 1, '2023/2', '022', 'terca', '08:00', 1, 108, 4);
+--EDA
+INSERT INTO horario (coddpto, numdisc, anosemestre, siglaturma, diasem, horaini, predio, sala, numhoras) values (1, 3, '2021/1', '020', 'terca', '14:00', 1, 105, 4);
+INSERT INTO horario (coddpto, numdisc, anosemestre, siglaturma, diasem, horaini, predio, sala, numhoras) values (1, 3, '2022/1', '021',  'terca', '14:00', 1, 105, 4);
+INSERT INTO horario (coddpto, numdisc, anosemestre, siglaturma, diasem, horaini, predio, sala, numhoras) values (1, 3, '2023/1', '022',  'terca', '14:00', 1, 105, 4);
+--ED
+INSERT INTO horario (coddpto, numdisc, anosemestre, siglaturma, diasem, horaini, predio, sala, numhoras) values (1, 2, '2020/2', '020',  'quinta', '14:00', 1, 106, 4);
+INSERT INTO horario (coddpto, numdisc, anosemestre, siglaturma, diasem, horaini, predio, sala, numhoras) values (1, 2, '2021/2', '021', 'quinta', '14:00', 1, 106, 4);
+INSERT INTO horario (coddpto, numdisc, anosemestre, siglaturma, diasem, horaini, predio, sala, numhoras) values (1, 2, '2022/2', '022','quinta', '14:00', 1, 106, 4);
+--calculo I
+INSERT INTO horario (coddpto, numdisc, anosemestre, siglaturma, diasem, horaini, predio, sala, numhoras) values (1, 1, '2020/2', '020', 'quarta', '14:00', 1, 106, 4);
+INSERT INTO horario (coddpto, numdisc, anosemestre, siglaturma, diasem, horaini, predio, sala, numhoras) values (1, 1, '2021/2', '021', 'quarta', '14:00', 1, 106, 4);
+INSERT INTO horario (coddpto, numdisc, anosemestre, siglaturma, diasem, horaini, predio, sala, numhoras) values (1, 1, '2022/2', '022', 'quarta', '14:00', 1, 106, 4);
+--calculo II
+INSERT INTO horario (coddpto, numdisc, anosemestre, siglaturma, diasem, horaini, predio, sala, numhoras) values (1, 2, '2021/1', '020', 'quarta', '14:00', 1, 107, 4);
+INSERT INTO horario (coddpto, numdisc, anosemestre, siglaturma, diasem, horaini, predio, sala, numhoras) values (1, 2, '2022/1', '021', 'quarta', '14:00', 1, 107, 4);
+INSERT INTO horario (coddpto, numdisc, anosemestre, siglaturma, diasem, horaini, predio, sala, numhoras) values (1, 2, '2023/1', '022', 'quarta', '14:00', 1, 107, 4);
+--calculo III
+INSERT INTO horario (coddpto, numdisc, anosemestre, siglaturma, diasem, horaini, predio, sala, numhoras) values (2, 3, '2021/2', '020', 'quarta', '14:00', 2, 1, 4);
+--calculo IV
+INSERT INTO horario (coddpto, numdisc, anosemestre, siglaturma, diasem, horaini, predio, sala, numhoras) values (2, 4, '2022/1', '020', 'segunda','14:00', 2, 1, 4);
+--Prob
+INSERT INTO horario (coddpto, numdisc, anosemestre, siglaturma, diasem, horaini, predio, sala, numhoras) values (2, 5, '2021/2', '020', 'quarta','14:00', 2, 1, 4);
+INSERT INTO horario (coddpto, numdisc, anosemestre, siglaturma, diasem, horaini, predio, sala, numhoras) values (2, 5, '2022/2', '021',  'segunda','08:00', 2, 1, 4);
+INSERT INTO horario (coddpto, numdisc, anosemestre, siglaturma, diasem, horaini, predio, sala, numhoras) values (2, 5, '2023/2', '022',  'segunda','08:00', 2, 1, 4);

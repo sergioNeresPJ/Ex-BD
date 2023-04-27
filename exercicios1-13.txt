@@ -1,0 +1,187 @@
+--exercicio 1 
+--Obter os codigos dos diferentes departamentos que tem turmas no ano-semestre 2022/1
+SELECT coddpto from turma where anosemestre = '2022/1';
+
+--------------------------------------------------------------------------------------------
+--exercicio 2 ('inf01' substituido por 'DComp', 2002/1 substituido por 2022/2)
+--Obter os nomes dos professores que sao do departamento de codigo ’INF01’ e que ministraram ao menos uma turma em 2002/1
+SELECT * 
+from professor Prof natural join prof_turma 
+where anosemestre='2022/2'
+AND Prof.coddpto = 1;
+
+--------------------------------------------------------------------------------------------
+--exercicio 3
+--Obter os hor´arios de aula (dia da semana, hora inicial e n´umero de horas ministradas) do professor ”Joao da Silva”.
+SELECT diasem, horaini, numhoras from prof_turma natural join 
+	(select codprof, nomeprof from professor) prof
+	natural join horario where nomeprof='Joao da Silva';
+	
+--------------------------------------------------------------------------------------------	
+--exercicio 4(terça substituido por segunda, 9 horas substituido por 8)
+-- Obter o predio e sala em que o professor ”Carlos” esta no seguinte horario: Terca-feira, 9 horas, semestre atual.
+
+--seleciona turma do prof carlos
+select * from prof_turma natural join professor where nomeprof ilike '%Carlos';
+
+--resposta:
+select predio, sala, anosemestre from horario natural join (
+	select * from prof_turma natural join professor where nomeprof ilike '%Carlos') prof
+	where diasem ilike 'segunda%' and horaini='08:00' and anosemestre='2022/2';
+
+--------------------------------------------------------------------------------------------
+--exercicio 5(2002/1 = 2022/1)
+-- Obter os codigos dos professores com t´ıtulo denominado ”Doutor” que n˜ao ministraram aulas em 2002/1.
+
+--seleciona cod professores que são doutores
+select codprof from professor natural join titulacao where nometit ilike 'doutor';
+
+--resposta:
+select pt.codprof from prof_turma pt left join (
+	select codprof from professor natural join titulacao where nometit ilike 'doutor') as dr
+	on pt.codprof = dr.codprof
+	where anosemestre = '2022/1' and dr.codprof is null;
+	
+--------------------------------------------------------------------------------------------
+--exercicio 6 (2002/1 = 2022/1)
+--Obter os identificadores das salas (codigo do predio e numero da sala) que, em 2022/1 
+--A)nas tercas-feiras, tiveram ao menos uma turma do departamento ”DComp”, e
+--B)nas segundas-feiras, tiveram ao menos uma turma ministrada pelo professor denominado ”Antonio Santos”.
+
+--selecao A
+create temporary table selecaoA(
+	coddpto int,
+	numdisc int,
+	anosemestre varchar(10),
+	siglaturma varchar(5),
+	diasem varchar(10) not null,
+	horaini varchar(10) not null,
+	predio int,
+	sala int,
+	numhoras int,
+	
+	constraint pk_selecaoA primary key (diasem, horaini, coddpto, numdisc, anosemestre, siglaturma)
+);
+
+INSERT INTO selecaoA(coddpto, numdisc, anosemestre, siglaturma, diasem, horaini, predio, sala, numhoras) SELECT *
+FROM (select * from horario natural join (
+	select coddpto, numdisc, anosemestre, siglaturma from turma natural join departamento where nomedpto ilike 'dcomp') tr
+	where diasem ilike 'terca%' and anosemestre = '2022/1') hr;
+
+
+--selecao B
+create temporary table selecaoB(
+	coddpto int,
+	numdisc int,
+	anosemestre varchar(10),
+	siglaturma varchar(5),
+	diasem varchar(10) not null,
+	horaini varchar(10) not null,
+	predio int,
+	sala int,
+	numhoras int,
+	
+	constraint pk_selecaoB primary key (diasem, horaini, coddpto, numdisc, anosemestre, siglaturma)
+);
+
+INSERT INTO selecaoB(coddpto, numdisc, anosemestre, siglaturma, diasem, horaini, predio, sala, numhoras) SELECT *
+FROM (select * from horario natural join (
+	select prof_turma.coddpto, numdisc, anosemestre, siglaturma from professor prof inner join prof_turma on prof.codprof=prof_turma.codprof where nomeprof ilike 'antonio%') pr
+	where diasem ilike 'segunda%' and anosemestre = '2022/1') as hr;
+	
+
+
+--resposta:
+select sa.sala, sa.predio from selecaoA sa INNER JOIN selecaoB sb ON sa.sala=sb.sala and sa.predio=sb.predio;
+
+--------------------------------------------------------------------------------------------
+--exercicio 7: Obter os nomes dos departamentos que tem turmas que, em 2022/1, tem aulas na sala 105 do predio 'roxo'.
+select nomedpto from horario hr natural join departamento inner join(
+	select * from sala natural join predio where nomepredio ilike '%roxo%' and numsala=105)sl on hr.sala = sl.numsala
+where anosemestre = '2022/1';
+
+--------------------------------------------------------------------------------------------
+--exercicio 8: Obter o dia da semana, a hora de inıcio e o numero de horas de cada horario de cada turma ministrada por um professor de nome ”Antonio”, em 2022/1, na sala 1 do predio 2
+
+--selecionar turmas ministradas pelo 'Antonio'
+select tm.coddpto,numdisc,anosemestre,siglaturma from prof_turma pt 
+inner join professor pr on pt.codprof = pr.codprof 
+where nomeprof ilike 'antonio%';  
+
+--resposta
+select * from horario
+inner join sala on horario.sala=sala.numsala and horario.predio=sala.codpredio natural join(
+	select pt.coddpto,numdisc,anosemestre,siglaturma from prof_turma pt 
+	inner join professor pr on pt.codprof = pr.codprof 
+	where nomeprof ilike 'antonio%' and anosemestre='2022/1'
+) tm
+where horario.sala = 1 and horario.predio=2;
+
+--------------------------------------------------------------------------------------------
+--exercicio 9: Um professor pode ministrar turmas de disciplinas pertencentes a outros departamentos. Para cada professor que ja ministrou aulas em disciplinas de outros
+--departamentos, obter o codigo do professor, seu nome, o nome de seu departamento e o nome do departamento no qual ministrou disciplina
+select pt.codprof, dp1.nomedpto nomedpto_turma, dp2.nomedpto nomedpto_prof from prof_turma  pt 
+inner join professor pr on pt.coddpto != pr.coddpto and pt.codprof=pr.codprof
+inner join departamento dp1 on pt.coddpto = dp1.coddpto
+inner join departamento dp2 on pr.coddpto = dp2.coddpto;
+
+--------------------------------------------------------------------------------------------
+--exercicio 10: Obter o nome dos professores que possuem horarios conflitantes (possuem turmas que tenham a mesma hora inicial, no mesmo dia da semana e no mesmo semestre).
+
+--seleciona horarios conflitantes
+create temporary table hr(
+	anosemestre varchar(10),
+	diasem varchar(10),
+	horaini varchar(10),
+	
+	constraint pk_hr primary key (anosemestre, diasem, horaini)
+);
+insert into hr(anosemestre, diasem, horaini) select * from (
+	select hr.anosemestre, hr.diasem, hr.horaini from horario hr natural join (
+		select pt.coddpto,numdisc,anosemestre,siglaturma from prof_turma  pt 
+		inner join professor prof on pt.codprof=prof.codprof) pr
+	group by hr.anosemestre, hr.diasem, hr.horaini
+	having count(*)>1) horarios_conflitantes;
+	
+--acha professores que dao aula nesses horarios
+select pr.nomeprof from horario natural join (
+	select pt.coddpto,numdisc,anosemestre,siglaturma, prof.nomeprof from prof_turma  pt 
+	inner join professor prof on pt.codprof=prof.codprof) pr
+	natural join hr
+	group by pr.nomeprof;
+
+--------------------------------------------------------------------------------------------
+--exercicio 11: Obter o nome de cada disciplina que possui ao menos dois pre-requisitos
+select nomedisc from disciplina di 
+inner join prereq pr on di.coddpto=pr.coddpto and di.coddisc=pr.coddisc
+group by nomedisc
+having count(*)>1;
+
+--------------------------------------------------------------------------------------------
+--exercicio 12: Para cada disciplina que possui pre-requisito, obter o nome da disciplina seguido do nome da disciplina que eh seu pre-requisito
+select d1.nomedisc nomedisc, d2.nomedisc nomedisc_prereq from prereq pr 
+inner join disciplina d1 on d1.coddpto=pr.coddpto and d1.coddisc=pr.coddisc
+inner join disciplina d2 on d2.coddpto=pr.coddptoprereq and d2.coddisc=pr.coddiscprereq
+order by d1.nomedisc;
+
+--------------------------------------------------------------------------------------------
+--exercicio 13: Para cada disciplina que tem um pre-requisito que a sua vez tambem tem um pre-requisito, obter o nome da disciplina seguido do nome do pre-requisito de seu pre-requisito
+create temporary table disc(
+	coddptoprereq int,
+	coddiscprereq int,
+	nomediscprereq varchar(500),
+	coddisc INT,
+  	coddpto INT,
+  	nomedisc VARCHAR(500),
+	
+	constraint pk_disc primary key (nomedisc, nomediscprereq)
+)
+insert into disc(nomedisc, coddpto, coddisc, nomediscprereq, coddptoprereq, coddiscprereq)  select * from	
+	(select d1.nomedisc, d1.coddpto, d1.coddisc, d2.nomedisc, coddptoprereq, coddiscprereq from prereq 
+	inner join disciplina d1 on d1.coddpto=prereq.coddpto and d1.coddisc=prereq.coddisc
+	inner join disciplina d2 on d2.coddpto=prereq.coddptoprereq and d2.coddisc=prereq.coddiscprereq) pr
+;
+
+select disc.nomedisc, disc.nomediscprereq, d3.nomedisc from prereq 
+inner join disc on disc.coddptoprereq = prereq.coddpto and disc.coddiscprereq = prereq.coddisc
+inner join disciplina d3 on d3.coddpto=prereq.coddptoprereq and d3.coddisc=prereq.coddiscprereq; 
